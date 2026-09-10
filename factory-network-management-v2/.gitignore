@@ -23,3 +23,8 @@ Thumbs.db
 !.env.example
 coverage/
 artifacts/
+backend/data/*
+!backend/data/README.md
+*.db
+*.db-wal
+*.db-shm

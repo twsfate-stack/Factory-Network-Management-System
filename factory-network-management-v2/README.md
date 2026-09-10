@@ -1,71 +1,16 @@
-# Factory Network Management System
+# Factory Network Management System V2
 
-**V2 — Clean Rebuild · Sprint 0 — Foundation**
+**Sprint 1 — Data foundation**
 
-A new, independent foundation for an internal factory network management application.
-This sprint establishes the design system and technical structure for visual review.
-It contains no operational factory features and does not use any previous project's code or database.
+A lightweight factory network application using React, Vite, Tailwind CSS, Flask, Flask-SQLAlchemy and SQLite. The approved Sprint 0 design is preserved. Dashboard counts, Production Lines and Add Switch now use real persistent data.
 
-## Structure
+## Start on Windows
 
-```text
-factory-network-management-v2/
-  frontend/
-    src/
-      assets/fonts/          Optional manually supplied display font
-      components/layout/    App shell, sidebar and page structure
-      components/ui/        Reusable controls and surfaces
-      config/               Navigation definitions
-      pages/showcase/       Development-only examples and isolated mock rows
-      pages/Placeholder.jsx Planned section placeholder
-      styles/theme.css      Semantic tokens, Tailwind and component styles
-      App.jsx
-      main.jsx
-    package.json
-    pnpm-lock.yaml
-    pnpm-workspace.yaml
-    vite.config.js
-    eslint.config.js
-    index.html
-  backend/
-    app/routes/health.py
-    app/__init__.py
-    tests/test_health.py
-    run.py
-    requirements.txt
-    requirements.lock.txt
-  docs/
-    architecture.md
-    validation.md
-    files-created.md
-  scripts/README.md
-  README.md
-  .gitignore
-```
+Prerequisites: Node.js 22.13+ (Node 24 LTS recommended), pnpm 11.19.0, and Python 3.11+ (tested with 3.12). Install pnpm once with `npm install --global pnpm@11.19.0` if needed.
 
-## Prerequisites
+From this V2 folder, open two PowerShell terminals.
 
-- Node.js 22.13+ (or Node 24 LTS), and pnpm 11.19.0.
-- Python 3.11+; validated with Python 3.12.
-- A modern Edge, Chrome, Firefox or Safari browser.
-- Internet for the initial dependency install, or a prepared local package cache. Normal application use has no CDN dependency.
-
-If pnpm is not installed, use `npm install --global pnpm@11.19.0` once.
-Frontend packages are locked in pnpm-lock.yaml; backend packages are locked in requirements.lock.txt.
-
-## Start development (Windows PowerShell)
-
-Open two terminals in this new V2 project folder.
-
-Terminal 1 — frontend:
-
-```powershell
-cd frontend
-pnpm install --frozen-lockfile
-pnpm dev
-```
-
-Terminal 2 — backend:
+Backend:
 
 ```powershell
 cd backend
@@ -74,77 +19,88 @@ py -3 -m venv .venv
 .\.venv\Scripts\python.exe run.py
 ```
 
-On subsequent starts, run only `pnpm dev` and `.\.venv\Scripts\python.exe run.py` from their respective folders.
-No PowerShell activation policy changes are needed.
-On macOS/Linux use `python3 -m venv .venv` and `.venv/bin/python` in place of the Windows Python command.
-
-Open **http://127.0.0.1:5173/#/showcase** for the UI Showcase. Development opens the Showcase by default.
-The Showcase is not a sidebar item. All six sidebar links navigate to intentional Sprint 0 placeholders.
-The production build excludes the Showcase and its JavaScript sample data; production starts at Dashboard's placeholder.
-
-Health endpoint: **http://127.0.0.1:5050/api/health**
-
-```json
-{"status":"ok","application":"Factory Network Management System"}
-```
-
-The frontend's Vite proxy also forwards `/api/health` to Flask, without a CORS dependency.
-The frontend itself does not require Flask to display the foundation preview.
-Both development servers bind to loopback only. Flask's development-server notice is expected; LAN deployment is a later sprint.
-
-## Validation commands
+Frontend:
 
 ```powershell
-# frontend/
-pnpm lint
-pnpm build
-pnpm preview
-
-# backend/
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
-Invoke-RestMethod http://127.0.0.1:5050/api/health
+cd frontend
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-Production preview defaults to http://127.0.0.1:4173 and deliberately does not expose the development Showcase.
-The `/api` proxy is development-only; production serving and LAN access remain future work.
+For later starts, only run the final command in each terminal. No virtual-environment activation is required. On macOS/Linux use python3 and .venv/bin/python instead of the Windows Python paths.
 
-## Theme and typography
+Open **http://127.0.0.1:5173/#/dashboard**. API health is **http://127.0.0.1:5050/api/health**. Port 5050 avoids the earlier service on port 5000.
 
-`frontend/src/styles/theme.css` owns the semantic palette, spacing, corner radii, typography, shadows and motion duration.
-Tailwind v4 is integrated with its Vite plugin and `@import "tailwindcss"`; `@theme inline` maps semantic colors to utility classes such as `bg-background` and `text-foreground`.
-Components use semantic variables rather than scattered color values. The four required palette values are also printed as descriptive labels in the Showcase.
+## First real entry
 
-- Background `#F7F7F7`; secondary surface `#EEEEEE`; primary text/action `#393E46`; muted decoration `#929AAB`.
-- Supporting text uses darker `--text-secondary` for readable contrast. The muted palette color is used for decoration, not essential small text.
-- Danger/error red is a separate semantic action token, not a switch status palette.
-- Active, Offline and Spare badges have neutral dot/outline/square variants. Status colors are deferred.
-- Controls share 40px minimum height and 10px radius. Cards use 16px; search and badges use pill radii.
-- A 4px spacing rhythm and 160ms interaction transitions keep the interface consistent. Reduced motion is respected.
-- Body/control typography uses local system fonts, with Leelawadee UI and Tahoma for Thai when installed. No fonts are fetched from a CDN.
+1. Open Dashboard: all counts start at zero.
+2. Click **Add Production Line**, enter `S27` and optional description `bondi ag`, then save.
+3. Click **Add Switch** and enter `SW-S27-001`, Vendor `Arista`, Model `7060`, Production Line `S27`, Status `ACTIVE`.
+4. Leave Serial Number blank if unavailable. Optional Asset ID, IP, MAC, Firmware and Notes are inside **More details**.
+5. Save: Dashboard total and active counts become 1; S27 shows Arista 7060, quantity 1 and ACTIVE immediately.
+6. Click **View** to see the switches assigned to that line.
 
-### Add SF Distant Galaxy later
+The Production Lines menu provides the same live table and add actions. Other business sections remain placeholders. No database editor or server restart is needed to add records.
 
-1. Obtain a font file you have permission to use.
-2. Place it at `frontend/src/assets/fonts/SF Distant Galaxy.ttf` with that exact filename.
-3. Restart Vite or rebuild.
+## Storage and safety of updates
 
-`main.jsx` discovers the optional file with Vite's glob import and registers it using the browser FontFace API.
-The display token `--font-brand` then uses it for major titles only. Missing or invalid files safely fall back to local Arial/system sans-serif without a missing-asset request.
-Tables, fields, buttons, labels and descriptions always retain the UI font.
+The database is **backend/data/factory_network.db**, automatically created empty on first startup. It is outside frontend build output and ignored by Git. No demo records are automatically seeded. Preserve it across application updates. Stop Flask before copying the database for backup. Set FACTORY_DATABASE_PATH to an absolute file path to use another storage location.
 
-## Sprint boundary
+Dependencies, .venv, node_modules, dist, logs and artifacts are excluded from source control. A manual ZIP must also exclude generated content; .gitignore does not filter a ZIP automatically. Move the database separately if you want to transfer real data.
 
-Included: React/Vite, Tailwind, Flask application factory and health route, responsive shell, six planned navigation sections, semantic theme, UI components, isolated Showcase samples, and development documentation.
+## Structure
 
-Not included: any database, SQLite, SQLAlchemy, migrations, real Dashboard, switch/catalog/line CRUD, search/filter logic, import/export, history storage, movement, authentication/PIN, QR, monitoring, ping, SNMP, deployment infrastructure or LAN configuration.
+```text
+frontend/src/
+  components/layout/     Approved application shell
+  components/ui/         Reusable approved UI primitives and DataTable
+  components/forms/      Add Production Line / Add Switch forms
+  components/ProductionLineTable.jsx
+  services/api.js        Central API client
+  pages/Dashboard.jsx    Live data and refresh lifecycle
+  pages/showcase/        Development-only isolated mock preview
+  styles/theme.css       Existing theme and design tokens
+backend/
+  app/models.py          ProductionLine and Switch SQLAlchemy models
+  app/validation.py      Readable form/constraint errors
+  app/routes/            Health, dashboard, lines, switches
+  data/                  Persistent SQLite location
+  tests/                 Isolated database/HTTP tests
+  run.py
+  requirements.txt
+  requirements.lock.txt
+docs/
+  data-foundation.md     Current schema, endpoints, rules, validation and limitations
+  architecture.md       Historical Sprint 0 architecture
+  validation.md         Historical Sprint 0 validation
+scripts/
+```
 
-Only local, disposable UI state exists. Refresh clears it. The future system should use one host-owned backend/database for all LAN clients, not separate browser databases.
+## Validation
 
-## Portability
+```powershell
+# backend
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
 
-Copy source and lockfiles. Omit `node_modules`, `.venv`, `dist`, caches, logs and temporary artifacts when zipping the folder; `.gitignore` excludes these from Git but does not automatically exclude them from a manually created ZIP.
-Reinstall dependencies on the new machine. No absolute machine paths are embedded in the application.
-The existing workspace Git repository is reused; no nested repository or automatic commit is created.
-Suggested reviewed milestone/tag: `sprint-0-foundation`.
+# frontend
+pnpm lint
+pnpm build
+```
 
-**Stop here: review and approve the Sprint 0 visual language before Sprint 1.**
+Tests use temporary databases, never the real database. Browser acceptance used a separate ignored test database. Full details and the modified-file list are in [docs/data-foundation.md](docs/data-foundation.md).
+
+## Existing design system
+
+Review the development-only Showcase at **http://127.0.0.1:5173/#/showcase**. It retains isolated mock rows and is excluded from production JavaScript. The live Dashboard opens by default.
+
+Theme tokens remain in frontend/src/styles/theme.css. Add a legally obtained `SF Distant Galaxy.ttf` under frontend/src/assets/fonts/ and restart Vite/rebuild to use the optional display font. Missing fonts safely fall back; UI text retains the system sans-serif font. No runtime CDN fonts are used.
+
+frontend/.env.example uses VITE_API_BASE_URL=/api; the Vite proxy forwards to Flask. Production hosting should provide a same-origin /api route. Standalone Vite preview does not proxy the backend; deployment/LAN hosting is out of scope.
+
+## Milestone boundary
+
+Implemented: SQLite tables, create/list Production Lines and Switches, real Dashboard summaries, five-column line summaries, basic View, validation, and refresh after saving.
+
+Not implemented: authentication, roles, QR, edit/delete, PIN, history storage, import/export, SNMP/ping, topology, service/repair management, Docker or production deployment. No automatic continuation beyond this milestone.
+
+Git checkpoints: `sprint-0-ui-approved` preserves the approved foundation; `sprint-1-data-foundation` marks the completed integration. The existing workspace Git repository is used.
