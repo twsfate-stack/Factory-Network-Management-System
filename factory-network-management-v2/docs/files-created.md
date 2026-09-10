@@ -1,0 +1,43 @@
+# Files created
+
+All project source files are new. Dependencies, virtual environments, build output and temporary validation artifacts are excluded.
+
+- .gitignore
+- backend/app/__init__.py
+- backend/app/routes/__init__.py
+- backend/app/routes/health.py
+- backend/requirements.lock.txt
+- backend/requirements.txt
+- backend/run.py
+- backend/tests/test_health.py
+- docs/architecture.md
+- docs/files-created.md
+- docs/validation.md
+- frontend/eslint.config.js
+- frontend/index.html
+- frontend/package.json
+- frontend/pnpm-lock.yaml
+- frontend/pnpm-workspace.yaml
+- frontend/public/favicon.svg
+- frontend/src/App.jsx
+- frontend/src/assets/fonts/README.md
+- frontend/src/components/layout/AppShell.jsx
+- frontend/src/components/ui/ActionDropdown.jsx
+- frontend/src/components/ui/Button.jsx
+- frontend/src/components/ui/Cards.jsx
+- frontend/src/components/ui/ConfirmDialog.jsx
+- frontend/src/components/ui/DataTable.jsx
+- frontend/src/components/ui/EmptyState.jsx
+- frontend/src/components/ui/Forms.jsx
+- frontend/src/components/ui/Icon.jsx
+- frontend/src/components/ui/SelectModeToolbar.jsx
+- frontend/src/components/ui/StatusBadge.jsx
+- frontend/src/config/navigation.js
+- frontend/src/main.jsx
+- frontend/src/pages/Placeholder.jsx
+- frontend/src/pages/showcase/sampleData.js
+- frontend/src/pages/showcase/Showcase.jsx
+- frontend/src/styles/theme.css
+- frontend/vite.config.js
+- README.md
+- scripts/README.md
