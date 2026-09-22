@@ -307,3 +307,52 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary)
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 @media (max-width: 480px) { .summary-grid { grid-template-columns: 1fr; } }
+
+/* Switch View only: keep the header accessible while long details scroll. */
+.switch-detail-modal { width: min(840px, calc(100% - 32px)); overflow: hidden; }
+.switch-detail-modal[open] { display: flex; flex-direction: column; }
+.switch-detail-header { display: flex; align-items: center; gap: 12px; flex-shrink: 0; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.switch-detail-header h2 { flex: 1; min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.switch-detail-content { min-height: 0; overflow-y: auto; }
+.switch-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
+.switch-detail-section { min-width: 0; padding: 20px 0; margin-bottom: 0; }
+.switch-detail-section:nth-child(n+3) { border-top: 1px solid var(--border); }
+.switch-detail-content h3 { font-size: 11px; font-weight: 700; letter-spacing: .06em; margin-bottom: 12px; color: var(--muted); }
+.switch-detail-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; margin-top: 8px; }
+.switch-detail-content dt { color: var(--muted); font-size: 13px; }
+.switch-detail-content dd { margin: 0; color: var(--foreground); overflow-wrap: anywhere; white-space: pre-wrap; }
+.switch-detail-notes { margin-bottom: 0; border-top: 1px solid var(--border); padding: 20px 0; }
+.switch-detail-notes p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.switch-detail-dates { display: flex; flex-wrap: wrap; gap: 12px 32px; border-top: 1px solid var(--border); padding-top: 16px; font-size: 12px; }
+@media (max-width: 640px) {
+  .switch-detail-modal { padding: 20px; }
+  .switch-detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .switch-detail-section + .switch-detail-section { border-top: 1px solid var(--border); }
+  .switch-detail-header { gap: 8px; flex-wrap: wrap; }
+  .switch-detail-row { grid-template-columns: 104px minmax(0, 1fr); gap: 8px; }
+}
+
+.move-identity { padding-bottom: 16px; overflow-wrap: anywhere; }
+.move-identity strong { color: var(--foreground); }
+.move-identity p { margin-top: 4px; }
+.move-current { padding: 16px 0; border-top: 1px solid var(--border); }
+.move-current h3, .move-section-title { font-size: 11px; font-weight: 700; margin-bottom: 12px; }
+.move-current dl > div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px; margin-top: 6px; }
+.move-current dd { margin: 0; color: var(--foreground); overflow-wrap: anywhere; }
+.move-review { padding-top: 16px; border-top: 1px solid var(--border); }
+.move-comparison { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 8px 0; overflow-wrap: anywhere; }
+.move-comparison strong { color: var(--foreground); }
+.move-note { margin-top: 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Shared Catalog-owned product image: never crop or distort the device. */
+.catalog-image { display: flex; align-items: center; justify-content: center; width: 100%; height: 140px; border: 1px solid var(--border); border-radius: var(--radius-md, 12px); background: var(--surface-secondary); overflow: hidden; margin-bottom: 16px; }
+.catalog-image img { width: 100%; height: 100%; object-fit: contain; }
+.catalog-image-thumb { width: 48px; height: 36px; flex-shrink: 0; margin-bottom: 0; }
+
+.inventory-import-modal { width: min(1100px, calc(100vw - 32px)); max-width: 1100px; }
+
+.inventory-file-field { display: grid; gap: var(--space-2); min-width: 0; }
+.inventory-file-picker { display: grid; justify-items: center; gap: var(--space-1); width: 100%; min-width: 0; padding: var(--space-5) var(--space-4); border: 1px solid var(--muted); border-radius: var(--radius-control); background: var(--surface); color: var(--foreground); cursor: pointer; transition: background var(--duration), border-color var(--duration); }
+.inventory-file-picker:hover:not(:disabled) { background: var(--background); border-color: var(--foreground); }
+.inventory-file-picker strong { max-width: 100%; overflow-wrap: anywhere; font-weight: 600; }
+.inventory-file-picker span { font-size: 12px; color: var(--text-secondary); }

@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef } from 'react';
 import Button from './Button';
 
-export default function ConfirmDialog({ open, title, children, onClose, onConfirm, confirmLabel = 'Confirm', variant = 'primary', busy = false }) {
+export default function ConfirmDialog({ open, title, children, onClose, onConfirm, confirmLabel = 'Confirm', cancelLabel = 'Cancel', showCancel = true, variant = 'primary', busy = false, confirmDisabled = false, className = '', headerAside, viewOnly = false }) {
   const dialog = useRef(null);
   const id = useId();
   useEffect(() => {
@@ -17,5 +17,5 @@ export default function ConfirmDialog({ open, title, children, onClose, onConfir
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
   }
-  return <dialog ref={dialog} className="modal" aria-labelledby={`${id}-title`} aria-describedby={`${id}-body`} onKeyDown={keepFocus} onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }} onClose={() => { if (!dialog.current.open) onClose(); }}><h2 id={`${id}-title`}>{title}</h2><div id={`${id}-body`} className="muted">{children}</div><div className="modal-actions"><Button variant="secondary" autoFocus disabled={busy} onClick={onClose}>Cancel</Button><Button variant={variant} disabled={busy} onClick={onConfirm}>{busy ? 'Saving…' : confirmLabel}</Button></div></dialog>;
+  return <dialog ref={dialog} className={`modal ${className}`} aria-labelledby={`${id}-title`} aria-describedby={`${id}-body`} onKeyDown={keepFocus} onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }} onClose={() => { if (!dialog.current.open) onClose(); }}>{viewOnly ? <header className="switch-detail-header"><h2 id={`${id}-title`}>{title}</h2>{headerAside}{viewOnly && <Button variant="ghost" autoFocus onClick={onClose}>Close</Button>}</header> : <h2 id={`${id}-title`}>{title}</h2>}<div id={`${id}-body`} className={viewOnly ? "switch-detail-content" : "muted"}>{children}</div>{!viewOnly && <div className="modal-actions">{showCancel && <Button variant="secondary" autoFocus disabled={busy} onClick={onClose}>{cancelLabel}</Button>}<Button autoFocus={!showCancel} variant={variant} disabled={busy || confirmDisabled} onClick={onConfirm}>{busy ? 'Saving…' : confirmLabel}</Button></div>}</dialog>;
 }

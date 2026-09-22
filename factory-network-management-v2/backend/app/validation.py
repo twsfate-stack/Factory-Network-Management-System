@@ -36,7 +36,9 @@ def commit_record(record):
         db.session.rollback()
         # Database constraints also protect against concurrent duplicate submissions.
         detail = str(error.orig).lower()
-        for key, label in (("asset_id", "Asset ID"), ("serial_number", "Serial number"), ("ip_address", "IP address"), ("production_lines.name", "Production Line name")):
+        if "switch_catalog.vendor_key" in detail:
+            raise ValidationError("This switch model already exists in the catalog.") from None
+        for key, label in (("asset_id", "Asset ID"), ("serial_number", "Serial number"), ("production_lines.name", "Production Line name")):
             if key in detail:
                 raise ValidationError(f"{label} already exists.") from None
         raise ValidationError("The record conflicts with existing data. Check the selected Production Line and field values.") from None

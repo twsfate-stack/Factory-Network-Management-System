@@ -7,7 +7,8 @@ import StatusBadge from '../components/ui/StatusBadge';
 import ProductionLineTable from '../components/ProductionLineTable';
 import AddProductionLine from '../components/forms/AddProductionLine';
 import AddSwitch from '../components/forms/AddSwitch';
-import { api } from '../services/api';
+import MoveSwitch from '../components/forms/MoveSwitch';
+import { api, passportPath } from '../services/api';
 
 export default function Dashboard({ linesOnly = false }) {
   const [data, setData] = useState(null);
@@ -15,6 +16,8 @@ export default function Dashboard({ linesOnly = false }) {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [form, setForm] = useState(null);
+  const [editingLine, setEditingLine] = useState(null);
+  const [moving, setMoving] = useState(null);
   const [detail, setDetail] = useState(null);
   const requests = useRef({ refresh: 0, detail: 0 });
 
@@ -27,13 +30,13 @@ export default function Dashboard({ linesOnly = false }) {
       .finally(() => { if (id === requests.current.refresh) setLoading(false); });
   }, []);
   useEffect(() => { const tokens = requests.current; refresh(); return () => { tokens.refresh++; tokens.detail++; }; }, [refresh]);
-  function saved(text) { setForm(null); setMessage(text); setLoading(true); refresh(); }
+  function saved(text) { setForm(null); setEditingLine(null); setMessage(text); setLoading(true); refresh(); }
   function closeDetail() { requests.current.detail++; setDetail(null); }
   async function view(row) {
     const id = ++requests.current.detail;
-    setDetail({ title: `${row.name} — Switches`, loading: true, rows: [] });
-    try { const rows = await api.switches({ production_line: row.id }); if (id === requests.current.detail) setDetail({ title: `${row.name} — Switches`, rows }); }
-    catch (failure) { if (id === requests.current.detail) setDetail({ title: `${row.name} — Switches`, error: failure.message, rows: [] }); }
+    setDetail({ line: row, title: `${row.name} — Switches`, loading: true, rows: [] });
+    try { const rows = await api.switches({ production_line: row.id }); if (id === requests.current.detail) setDetail({ line: row, title: `${row.name} — Switches`, rows }); }
+    catch (failure) { if (id === requests.current.detail) setDetail({ line: row, title: `${row.name} — Switches`, error: failure.message, rows: [] }); }
   }
   const rows = data?.lines.map(line => ({ ...line, supportingInfo: line.description, total: line.total_switches, vendor: line.switch_models.join(' · ') })) || [];
   return <>
@@ -46,10 +49,13 @@ export default function Dashboard({ linesOnly = false }) {
       {!data.lines.length && <p className="muted mb-4">Add a Production Line first, then add your first Switch.</p>}
       <ProductionLineTable rows={rows} onView={view} onSelectionPreview={count => setDetail({ title: 'Selection preview', message: `${count} production line(s) selected. Bulk actions are not implemented.`, rows: [] })} />
     </>}
+    {editingLine && <AddProductionLine line={editingLine} onClose={() => setEditingLine(null)} onSaved={saved} />}
     {form === 'line' && <AddProductionLine onClose={() => setForm(null)} onSaved={saved} />}
     {form === 'switch' && <AddSwitch lines={data.lines} onClose={() => setForm(null)} onSaved={saved} />}
-    <ConfirmDialog open={Boolean(detail)} title={detail?.title || 'Switches'} onClose={closeDetail} onConfirm={closeDetail} confirmLabel="Close">
-      {detail?.loading ? <p role="status">Loading switches…</p> : detail?.error ? <p role="alert">{detail.error}</p> : detail?.message ? <p>{detail.message}</p> : detail?.rows.length ? <ul className="form-stack">{detail.rows.map(row => <li key={row.id}><strong>{row.hostname}</strong><p>{row.vendor} {row.model}</p><StatusBadge status={row.status} /></li>)}</ul> : <p>No switches assigned to this Production Line.</p>}
-    </ConfirmDialog>
+    {moving && <MoveSwitch record={moving} lines={data.lines} onClose={() => { setMoving(null); view(detail.line); }} onSaved={() => { setMoving(null); setMessage('Switch moved successfully.'); refresh(); view(detail.line); }} />}
+    {!moving && <ConfirmDialog open={Boolean(detail)} title={detail?.title || 'Switches'} onClose={closeDetail} onConfirm={closeDetail} confirmLabel="Close">
+      {detail?.line && <Button variant="secondary" className="mb-4" onClick={() => { setEditingLine(detail.line); closeDetail(); }}>Edit Production Line</Button>}
+      {detail?.loading ? <p role="status">Loading switches…</p> : detail?.error ? <p role="alert">{detail.error}</p> : detail?.message ? <p>{detail.message}</p> : detail?.rows.length ? <ul className="form-stack">{detail.rows.map(row => <li key={row.id}><strong>{row.hostname}</strong><p>{row.vendor} {row.model}</p><p className="text-xs muted">Asset ID: {row.asset_id || '—'} · Serial Number: {row.serial_number || '—'}</p><div className="flex items-center justify-between gap-2 mt-2"><StatusBadge status={row.status} />{row.passport_uid && <a className="button button-ghost" href={passportPath(row.passport_uid)}>Passport / QR</a>}<Button variant="secondary" aria-label={`Move ${row.hostname}`} onClick={() => setMoving(row)}>MOVE</Button></div></li>)}</ul> : <p>No switches assigned to this Production Line.</p>}
+    </ConfirmDialog>}
   </>;
 }

@@ -1,6 +1,12 @@
 # Factory Network Management System V2
 
-**Sprint 1 — Data foundation**
+**Multiple Model Names:** Production Line Overview now has six columns. Add names as tags, or use View → Edit Production Line. See [Model Name notes](docs/model-names.md).
+
+**Soft Delete + Delete PIN:** Configure your PIN in Settings, then use Inventory Select/Delete and Recycle Bin/Restore. See [milestone notes](docs/soft-delete.md) for APIs, security, migration and tests.
+
+**Switch Inventory + Block + Created Date milestone**
+
+Switch Inventory is now live at **http://127.0.0.1:5173/#/inventory**, using the shared Add Switch form, optional Block, automatic creation dates, real records, search/filters and View. See [Inventory milestone notes](docs/inventory-block.md) for the safe schema upgrade, file list and validation results.
 
 A lightweight factory network application using React, Vite, Tailwind CSS, Flask, Flask-SQLAlchemy and SQLite. The approved Sprint 0 design is preserved. Dashboard counts, Production Lines and Add Switch now use real persistent data.
 

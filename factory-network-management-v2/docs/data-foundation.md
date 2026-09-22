@@ -9,9 +9,9 @@ Default file: `backend/data/factory_network.db`, resolved relative to backend so
 | Table | Columns |
 | --- | --- |
 | production_lines | id, name (unique, required), description, created_at, updated_at |
-| switches | id, hostname (required), asset_id (optional unique), serial_number (optional unique), vendor (required), model (required), production_line_id (required foreign key), status, ip_address (optional unique), mac_address, firmware_version, notes, created_at, updated_at |
+| switches | id, hostname (required), asset_id (optional unique), serial_number (optional unique), vendor (required), model (required), production_line_id (required foreign key), status, ip_address (optional, non-unique), mac_address, firmware_version, notes, created_at, updated_at |
 
-Timestamps are UTC ISO strings in API responses. Names/IDs are trimmed. Blank optional values become NULL, so multiple records can omit identifiers. Line names, asset IDs and serial numbers use SQLite NOCASE uniqueness (ASCII case-insensitive). IP addresses are parsed and normalized before uniqueness checking. Foreign keys and a five-second busy timeout are enabled. SQL constraints protect concurrent duplicate writes as well as application validation.
+Timestamps are UTC ISO strings in API responses. Names/IDs are trimmed. Blank optional values become NULL, so multiple records can omit identifiers. Line names, asset IDs and serial numbers use SQLite NOCASE uniqueness (ASCII case-insensitive). IP addresses are parsed and normalized for format validation; duplicate addresses are permitted. Foreign keys and a five-second busy timeout are enabled. SQL constraints protect concurrent duplicate writes as well as application validation.
 
 Back up the database separately from source: stop Flask, then copy `backend/data/factory_network.db`. Preserve this file during application updates. Git ignores database files and test artifacts. Do not delete it to apply updates. Automatic `create_all` creates missing tables only; future schema changes require an explicit migration plan. No migration system is included yet.
 
@@ -44,7 +44,7 @@ Create switch payload:
 }
 ```
 
-Asset ID, serial number, IP address, MAC address, firmware_version and notes are optional. Production Line must already exist. Hostname is intentionally not unique in this milestone; asset/serial/IP identify duplicate inventory when supplied.
+Asset ID, serial number, IP address, MAC address, firmware_version and notes are optional. Production Line must already exist. Hostname is intentionally not unique in this milestone; asset/serial identify duplicate inventory when supplied; IP is not an identifier.
 
 ## Calculations and UI flow
 
@@ -52,12 +52,13 @@ Dashboard counts are calculated by a database GROUP BY on switch status; total i
 
 Line summaries are calculated once on the backend using eagerly loaded assigned switches. Each line returns total quantity and a deduplicated, alphabetically sorted list of `vendor + model` combinations.
 
-Line status precedence:
+Production Line operational status uses non-deleted Switches only:
 
-1. Any OFFLINE switch → OFFLINE.
-2. Otherwise any ACTIVE switch → ACTIVE (including mixed active/spare lines).
-3. Otherwise a nonempty all-SPARE line → SPARE.
-4. Empty line → null; the UI displays “No switches,” not an invented operational status.
+1. No switches -> NO SWITCH.
+2. At least one ACTIVE switch -> WORKING (even with OFFLINE/SPARE devices).
+3. Switches exist but none ACTIVE -> NOT WORKING.
+
+Switch status remains ACTIVE/OFFLINE/SPARE. Line status is derived, never stored or manually edited.
 
 Dashboard and Production Lines navigation use the same live table. Dashboard also shows the approved four summary cards. Add Production Line is available from both. Add Switch is enabled after a line exists. Save commits to SQLite, closes the form, and reloads Dashboard counts and line summaries. If saving fails, the form stays open with entered values. If refresh fails after a successful save, a saved notice remains and Retry is available; resubmission is not requested.
 
@@ -69,7 +70,15 @@ All request URLs live in `frontend/src/services/api.js`. The provided `.env.exam
 
 ## Tests and boundaries
 
-13 unittest tests pass: file/table creation, restart persistence, line creation/uniqueness, switch creation, empty defaults, all status counts, line aggregation/deduplication/status, optional values, duplicate asset/serial/normalized IP, validation, query filters and health.
+16 unittest tests pass: file/table creation, restart persistence, line creation/uniqueness, switch creation, empty defaults, all status counts, line aggregation/deduplication/status, optional values, duplicate asset/serial rejection and normalized IP validation, validation, query filters, health, the exact A10 workflow, derived-counter/assignment invariants, and deletion/orphan protection.
+
+### Production Line relationship audit
+
+The existing runtime already implements ProductionLine 1 → many Switches through a required foreign key. There are no stored quantity fields on ProductionLine. The Add Production Line form submits only name and description; submitted extra counter fields are ignored by the API. Add Switch uses IDs from database-backed line options. No runtime or UI changes were needed for this audit.
+
+The exact browser acceptance scenario passed against a separate real SQLite test backend: create A10 / Bondi AG, add SW-A10-01 / Arista / 7060 / ACTIVE, then SW-A10-02 / Quanta / LYB / ACTIVE. Summary values changed 0/0/0/0 → 1/1/0/0 → 2/2/0/0 immediately. A10 totals and unique model strings updated, View listed both switches, and reload retained the data. The normal database was not modified.
+
+Safety tests verify that neither SQL nor ORM deletion of an occupied line can orphan its switches, and that NULL or nonexistent foreign-key assignments fail without altering the saved relationship. No delete endpoint was added.
 
 Browser acceptance checks use a separate SQLite file under ignored `artifacts/`: zero counts → create S27 → add SW-S27-001 → total/active/line count 1; View; duplicate validation; OFFLINE and SPARE additions; reload persistence; backend failure and Retry; 1366, 1920 and 390px layouts. The normal database is left empty for the user's real entries.
 
